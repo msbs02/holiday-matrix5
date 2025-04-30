@@ -1,0 +1,57 @@
+<header>
+  <div class="logo">
+    <img src="assets/logo-leoni.png" alt="LEONI Logo" />
+    <h1>LEONI</h1>
+  </div>
+  <div class="search">
+    <input type="text" placeholder="Rechercher un employé..." />
+    <button>Rechercher</button>
+  </div>
+  <nav>
+    <a href="#">Consulter la Matrice</a>
+    <a href="#">Planifier les Congés</a>
+    <a href="#">Statistiques</a>
+    <a href="#">Notifications</a>
+  </nav>
+</header>
+
+<main>
+  <h2>{{ dashboardData?.welcomeMessage }}</h2>
+
+  <section class="leave-requests">
+    <h3>Demandes de congé</h3>
+    <table>
+      <thead>
+      <tr>
+        <th>Équipe/Position</th>
+        <th>Catégorie de Congé</th>
+        <th>Nom de l'Employé</th>
+        <th>Statut</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let req of dashboardData?.leaveRequests">
+        <td>{{ req.teamOrPosition }}</td>
+        <td>{{ req.leaveCategory }}</td>
+        <td>{{ req.employeeName }}</td>
+        <td [ngClass]="{
+              'approved': req.status==='Approuvé',
+              'pending': req.status==='En attente',
+              'rejected': req.status==='Refusé'
+            }">
+          {{ req.status }}
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<aside class="sidebar">
+  <p>Manager: {{ dashboardData?.managerName }}</p>
+  <button (click)="logout()">Déconnexion</button>
+</aside>
+
+<footer>
+  <p>© 2025 LEONI</p>
+</footer>

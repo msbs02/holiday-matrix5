@@ -1,0 +1,79 @@
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #343a40;
+  color: white;
+  padding: 10px;
+}
+
+header .logo {
+  display: flex;
+  align-items: center;
+}
+
+header .logo img {
+  width: 40px;
+  margin-right: 10px;
+}
+
+header nav a {
+  margin: 0 10px;
+  color: #fff;
+  text-decoration: none;
+}
+
+.search input {
+  padding: 5px;
+}
+
+main {
+  margin: 20px;
+}
+
+.leave-requests table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leave-requests th, .leave-requests td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+.leave-requests tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.approved {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.rejected {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.sidebar {
+  position: fixed;
+  right: 0;
+  top: 60px;
+  width: 200px;
+  padding: 20px;
+  background-color: #eee;
+  border-left: 1px solid #ccc;
+}
+
+footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.9em;
+  color: #777;
+}

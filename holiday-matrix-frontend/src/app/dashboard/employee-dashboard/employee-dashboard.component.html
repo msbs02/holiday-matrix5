@@ -1,0 +1,42 @@
+<div *ngIf="dashboardData && dashboardData.calendar">
+  <header>
+    <h1>{{ dashboardData.companyName }}</h1>
+    <div class="user-info">
+      <span>Nom d’utilisateur</span>
+      <button (click)="logout()">Déconnexion</button>
+    </div>
+  </header>
+
+  <section class="calendar">
+    <h2>Calendrier - {{ dashboardData.calendar.month }} {{ dashboardData.calendar.year }}</h2>
+    <div class="calendar-grid">
+      <ng-container *ngFor="let day of [].constructor(28); let i = index">
+        <div [class.highlight]="(i + 1) === dashboardData.calendar.highlightedDate">
+          {{ i + 1 }}
+        </div>
+      </ng-container>
+    </div>
+  </section>
+
+  <section class="notifications">
+    <h3>Notifications</h3>
+    <ul>
+      <li *ngFor="let notif of dashboardData.notifications">
+        {{ notif.message }}
+      </li>
+    </ul>
+  </section>
+
+  <section class="news">
+    <h3>Nouvelles</h3>
+    <div *ngFor="let newsItem of dashboardData.news">
+      <h4>{{ newsItem.title }}</h4>
+      <p>{{ newsItem.content }}</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>Vérifiez l'application Holiday Matrix pour plus de détails.</p>
+    <p>© 2025 LEONI</p>
+  </footer>
+</div>

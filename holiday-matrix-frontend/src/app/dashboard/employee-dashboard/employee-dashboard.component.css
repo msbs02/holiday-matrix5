@@ -1,0 +1,39 @@
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #007bff;
+  color: white;
+  padding: 10px;
+}
+
+.calendar {
+  margin: 20px 0;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.calendar-grid div {
+  padding: 10px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+.calendar-grid div.highlight {
+  background-color: #ffd700;
+}
+
+.notifications, .news {
+  margin: 20px 0;
+}
+
+footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.9em;
+  color: #777;
+}
