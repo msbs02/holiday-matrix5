@@ -1,42 +1,132 @@
-<div *ngIf="dashboardData && dashboardData.calendar">
-  <header>
-    <h1>{{ dashboardData.companyName }}</h1>
-    <div class="user-info">
-      <span>Nom d’utilisateur</span>
-      <button (click)="logout()">Déconnexion</button>
-    </div>
-  </header>
+<div class="container" *ngIf="!loading; else loadingTemplate">
+  <div *ngIf="dashboardData" class="employee-dashboard">
+    <header class="mb-4">
+      <div class="d-flex justify-content-between align-items-center">
+        <h1>Tableau de bord - {{ dashboardData.companyName }}</h1>
+        <button class="btn btn-outline-danger" (click)="logout()">Déconnexion</button>
+      </div>
+    </header>
 
-  <section class="calendar">
-    <h2>Calendrier - {{ dashboardData.calendar.month }} {{ dashboardData.calendar.year }}</h2>
-    <div class="calendar-grid">
-      <ng-container *ngFor="let day of [].constructor(28); let i = index">
-        <div [class.highlight]="(i + 1) === dashboardData.calendar.highlightedDate">
-          {{ i + 1 }}
+    <div class="row mb-4">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header bg-primary text-white">
+            <!--<h3 class="mb-0">Calendrier - {{ dashboardData.calendar?.month }} {{ dashboardData.calendar?.year }}</h3>-->
+            <div *ngIf="dashboardData && dashboardData.calendar">
+              <h2>Calendrier - {{ dashboardData.calendar.month }} {{ dashboardData.calendar.year }}</h2>
+              <!-- Reste du code -->
+            </div>
+          </div>
+          <div class="card-body">
+            <!--<div class="calendar-grid">
+              <div class="weekdays">
+                <div>Lu</div>
+                <div>Ma</div>
+                <div>Me</div>
+                <div>Je</div>
+                <div>Ve</div>
+                <div>Sa</div>
+                <div>Di</div>
+              </div>
+
+              <div class="days">
+                <ng-container *ngFor="let day of [].constructor(28); let i = index">
+                  <div [class.highlight]="(i + 1) === dashboardData.calendar?.highlightedDate"
+                       [class.holiday]="dashboardData.calendar?.holidayDates?.includes(i + 1)">
+                    {{ i + 1 }}
+                  </div>
+                </ng-container>
+              </div>
+            </div>-->
+
+            <div class="calendar-grid">
+              <ng-container *ngFor="let day of [].constructor(28); let i = index">
+                <div [class.highlight]="(i + 1) === dashboardData.calendar.highlightedDate"
+                     [class.holiday]="dashboardData.calendar.holidayDates && dashboardData.calendar.holidayDates.includes(i + 1)">
+                  {{ i + 1 }}
+                </div>
+              </ng-container>
+            </div>
+
+          </div>
         </div>
-      </ng-container>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card mb-3">
+          <div class="card-header bg-warning text-dark">
+            <h3 class="mb-0">Notifications</h3>
+          </div>
+          <div class="card-body">
+            <ul class="list-group">
+              <li *ngFor="let notif of dashboardData.notifications" class="list-group-item"
+                  [class.list-group-item-warning]="!notif.read">
+                {{ notif.message }}
+              </li>
+              <li *ngIf="!dashboardData.notifications || dashboardData.notifications.length === 0"
+                  class="list-group-item text-muted">
+                Aucune notification
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header bg-info text-white">
+            <h3 class="mb-0">Mes congés</h3>
+          </div>
+          <div class="card-body">
+            <ul class="list-group">
+              <li *ngFor="let holiday of userHolidays" class="list-group-item">
+                <div>{{ holiday.holidayPeriodName }}</div>
+                <div>
+                  <span class="badge" [ngClass]="{
+                    'bg-danger': holiday.status === 'RED',
+                    'bg-warning': holiday.status === 'YELLOW',
+                    'bg-success': holiday.status === 'GREEN'
+                  }">
+                    {{ holiday.status === 'RED' ? 'Travail' : holiday.status === 'YELLOW' ? 'En attente' : 'Congé' }}
+                  </span>
+                </div>
+              </li>
+              <li *ngIf="!userHolidays || userHolidays.length === 0" class="list-group-item text-muted">
+                Aucun congé planifié
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
-  </section>
 
-  <section class="notifications">
-    <h3>Notifications</h3>
-    <ul>
-      <li *ngFor="let notif of dashboardData.notifications">
-        {{ notif.message }}
-      </li>
-    </ul>
-  </section>
-
-  <section class="news">
-    <h3>Nouvelles</h3>
-    <div *ngFor="let newsItem of dashboardData.news">
-      <h4>{{ newsItem.title }}</h4>
-      <p>{{ newsItem.content }}</p>
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header bg-success text-white">
+            <h3 class="mb-0">Actualités</h3>
+          </div>
+          <div class="card-body">
+            <div *ngFor="let news of dashboardData.news" class="mb-3">
+              <h4>{{ news.title }}</h4>
+              <p>{{ news.content }}</p>
+            </div>
+            <div *ngIf="!dashboardData.news || dashboardData.news.length === 0" class="text-muted">
+              Aucune actualité disponible
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  </section>
+  </div>
 
-  <footer>
-    <p>Vérifiez l'application Holiday Matrix pour plus de détails.</p>
-    <p>© 2025 LEONI</p>
-  </footer>
+  <div *ngIf="errorMessage" class="alert alert-danger mt-3">
+    {{ errorMessage }}
+  </div>
 </div>
+
+<ng-template #loadingTemplate>
+  <div class="d-flex justify-content-center mt-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Chargement...</span>
+    </div>
+  </div>
+</ng-template>

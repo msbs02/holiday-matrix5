@@ -1,1 +1,377 @@
-<p>direction-dashboard works!</p>
+<div class="dashboard">
+  <header class="header">
+    <div class="logo">
+      <img src="assets/logo-leoni.png" alt="LEONI Logo">
+      <h1>LEONI Holiday Matrix</h1>
+    </div>
+    <div class="user-info">
+      <span>{{ userDetails?.firstName }} {{ userDetails?.lastName }}</span>
+      <button class="notification-btn" (click)="showNotifications()">
+        <i class="fas fa-bell"></i>
+        <span *ngIf="userDetails?.notificationCount" class="notification-badge">
+          {{ userDetails?.notificationCount }}
+        </span>
+      </button>
+      <button (click)="logout()">Déconnexion</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button [class.active]="activeTab === 'matrices'" (click)="activeTab = 'matrices'">Matrices Annuelles</button>
+    <button [class.active]="activeTab === 'holidays'" (click)="activeTab = 'holidays'">Congés</button>
+    <button [class.active]="activeTab === 'users'" (click)="activeTab = 'users'">Utilisateurs</button>
+  </nav>
+
+  <main class="content">
+    <!-- Onglet Matrices Annuelles -->
+    <section *ngIf="activeTab === 'matrices'" class="matrices-section">
+      <h2>Validation des Matrices Annuelles</h2>
+
+      <div class="filter-controls">
+        <label>
+          Année:
+          <select [(ngModel)]="selectedYear" (change)="loadMatrices()">
+            <option *ngFor="let year of years" [value]="year">{{ year }}</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="matrices-list">
+        <table>
+          <thead>
+          <tr>
+            <th>Position</th>
+            <th>Organisation</th>
+            <th>Manager</th>
+            <th>Headcount</th>
+            <th>Criticité Planifiée</th>
+            <th>Criticité Non-Planifiée</th>
+            <th>Statut HOS</th>
+            <th>Statut DG</th>
+            <th>Action</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let matrix of matrices">
+            <td>{{ matrix.position }}</td>
+            <td>{{ matrix.organization }}</td>
+            <td>{{ matrix.manager?.username }}</td>
+            <td>{{ matrix.hc }}</td>
+            <td>
+                <span [ngClass]="{
+                  'criticality-low': matrix.plannedHolidayCriticality === 1,
+                  'criticality-medium': matrix.plannedHolidayCriticality === 2,
+                  'criticality-high': matrix.plannedHolidayCriticality === 3
+                }">
+                  {{ getCriticalityLabel(matrix.plannedHolidayCriticality) }}
+                </span>
+            </td>
+            <td>
+                <span [ngClass]="{
+                  'criticality-low': matrix.nonPlannedHolidayCriticality === 1,
+                  'criticality-medium': matrix.nonPlannedHolidayCriticality === 2,
+                  'criticality-high': matrix.nonPlannedHolidayCriticality === 3
+                }">
+                  {{ getCriticalityLabel(matrix.nonPlannedHolidayCriticality) }}
+                </span>
+            </td>
+            <td>
+                <span [ngClass]="{
+                  'status-pending': matrix.hosValidationStatus === 'PENDING',
+                  'status-approved': matrix.hosValidationStatus === 'APPROVED',
+                  'status-rejected': matrix.hosValidationStatus === 'REJECTED'
+                }">
+                  {{ getStatusLabel(matrix.hosValidationStatus) }}
+                </span>
+            </td>
+            <td>
+                <span [ngClass]="{
+                  'status-pending': matrix.dgValidationStatus === 'PENDING',
+                  'status-approved': matrix.dgValidationStatus === 'APPROVED',
+                  'status-rejected': matrix.dgValidationStatus === 'REJECTED'
+                }">
+                  {{ getStatusLabel(matrix.dgValidationStatus) }}
+                </span>
+            </td>
+            <td>
+              <button *ngIf="matrix.dgValidationStatus === 'PENDING'"
+                      class="btn-approve"
+                      (click)="approveMatrix(matrix.id)">Approuver</button>
+              <button *ngIf="matrix.dgValidationStatus === 'PENDING'"
+                      class="btn-reject"
+                      (click)="rejectMatrix(matrix.id)">Rejeter</button>
+              <button class="btn-view" (click)="viewMatrixDetails(matrix.id)">Détails</button>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Onglet Congés -->
+    <section *ngIf="activeTab === 'holidays'" class="holidays-section">
+      <h2>Aperçu des Congés</h2>
+
+      <div class="calendar-view">
+        <!-- Implémentation d'un calendrier avec des codes couleur pour les congés -->
+        <div class="calendar-header">
+          <button (click)="previousMonth()">&lt;</button>
+          <h3>{{ currentMonth }} {{ currentYear }}</h3>
+          <button (click)="nextMonth()">&gt;</button>
+        </div>
+
+        <div class="calendar-grid">
+          <div class="day-header" *ngFor="let day of weekDays">{{ day }}</div>
+          <div *ngFor="let day of calendarDays"
+               class="day-cell"
+               [class.outside-month]="!day.inMonth"
+               [class.today]="day.isToday">
+            <span class="day-number">{{ day.day }}</span>
+            <div class="holiday-indicators">
+              <span *ngFor="let holiday of day.holidays"
+                    class="holiday-indicator"
+                    [ngStyle]="{'background-color': getCriticalityColor(holiday.criticalityLevel)}"
+                    [title]="holiday.name"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="holiday-list">
+        <h3>Congés à venir</h3>
+        <table>
+          <thead>
+          <tr>
+            <th>Employé</th>
+            <th>Date de début</th>
+            <th>Date de fin</th>
+            <th>Type</th>
+            <th>Criticité</th>
+            <th>Statut</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let holiday of upcomingHolidays">
+            <td>{{ holiday.user?.username }}</td>
+            <td>{{ holiday.startDate | date:'dd/MM/yyyy' }}</td>
+            <td>{{ holiday.endDate | date:'dd/MM/yyyy' }}</td>
+            <td>{{ holiday.isPlanned ? 'Planifié' : 'Non planifié' }}</td>
+            <td>
+                <span [ngClass]="{
+                  'criticality-low': holiday.criticalityLevel === 1,
+                  'criticality-medium': holiday.criticalityLevel === 2,
+                  'criticality-high': holiday.criticalityLevel === 3
+                }">
+                  {{ getCriticalityLabel(holiday.criticalityLevel) }}
+                </span>
+            </td>
+            <td>
+                <span [ngClass]="{
+                  'status-pending': holiday.status === 'PENDING',
+                  'status-approved': holiday.status === 'APPROVED',
+                  'status-rejected': holiday.status === 'REJECTED'
+                }">
+                  {{ getStatusLabel(holiday.status) }}
+                </span>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Onglet Utilisateurs -->
+    <section *ngIf="activeTab === 'users'" class="users-section">
+      <h2>Gestion des Utilisateurs</h2>
+
+      <div class="filter-controls">
+        <label>
+          Rôle:
+          <select [(ngModel)]="selectedRole" (change)="loadUsers()">
+            <option value="all">Tous</option>
+            <option value="EMPLOYEE">Employé</option>
+            <option value="MANAGER">Manager</option>
+            <option value="HEAD_OF_SERVICE">Head of Service</option>
+            <option value="DIRECTION_GENERAL">Direction Générale</option>
+          </select>
+        </label>
+        <input type="text" [(ngModel)]="searchQuery" placeholder="Rechercher..." (input)="filterUsers()">
+      </div>
+
+      <div class="users-list">
+        <table>
+          <thead>
+          <tr>
+            <th>Nom d'utilisateur</th>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Email</th>
+            <th>Département</th>
+            <th>Position</th>
+            <th>Rôle</th>
+            <th>Manager</th>
+            <th>Actions</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let user of filteredUsers">
+            <td>{{ user.username }}</td>
+            <td>{{ user.lastName || '-' }}</td>
+            <td>{{ user.firstName || '-' }}</td>
+            <td>{{ user.email || '-' }}</td>
+            <td>{{ user.department || '-' }}</td>
+            <td>{{ user.position || '-' }}</td>
+            <td>{{ user.role }}</td>
+            <td>{{ user.managerName || '-' }}</td>
+            <td>
+              <button class="btn-edit" (click)="editUser(user.id)">Modifier</button>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal de notifications -->
+  <div *ngIf="showNotificationsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Notifications</h3>
+        <button class="modal-close" (click)="showNotificationsModal = false">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="notifications.length === 0" class="no-notifications">
+          Pas de notifications
+        </div>
+        <ul class="notifications-list">
+          <li *ngFor="let notification of notifications"
+              [class.unread]="!notification.read"
+              (click)="markNotificationAsRead(notification.id)">
+            <div class="notification-content">{{ notification.message }}</div>
+            <div class="notification-time">{{ notification.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+          </li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button (click)="markAllNotificationsAsRead()" *ngIf="hasUnreadNotifications()">
+          Marquer tout comme lu
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de détails de matrice -->
+  <div *ngIf="showMatrixDetailsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Détails de la Matrice</h3>
+        <button class="modal-close" (click)="showMatrixDetailsModal = false">&times;</button>
+      </div>
+      <div class="modal-body" *ngIf="selectedMatrix">
+        <div class="matrix-details">
+          <div class="detail-row">
+            <span class="label">Position:</span>
+            <span class="value">{{ selectedMatrix.position }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Headcount:</span>
+            <span class="value">{{ selectedMatrix.hc }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Description:</span>
+            <span class="value">{{ selectedMatrix.description }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Manager Direct:</span>
+            <span class="value">{{ selectedMatrix.directManager }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Organisation:</span>
+            <span class="value">{{ selectedMatrix.organization }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Manager N+1:</span>
+            <span class="value">{{ selectedMatrix.nextLevelManager }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Nombre d'employés:</span>
+            <span class="value">{{ selectedMatrix.employeeCount }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Criticité Congés Planifiés:</span>
+            <span class="value" [ngClass]="{
+              'criticality-low': selectedMatrix.plannedHolidayCriticality === 1,
+              'criticality-medium': selectedMatrix.plannedHolidayCriticality === 2,
+              'criticality-high': selectedMatrix.plannedHolidayCriticality === 3
+            }">
+              {{ getCriticalityLabel(selectedMatrix.plannedHolidayCriticality) }}
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Criticité Congés Non-Planifiés:</span>
+            <span class="value" [ngClass]="{
+              'criticality-low': selectedMatrix.nonPlannedHolidayCriticality === 1,
+              'criticality-medium': selectedMatrix.nonPlannedHolidayCriticality === 2,
+              'criticality-high': selectedMatrix.nonPlannedHolidayCriticality === 3
+            }">
+              {{ getCriticalityLabel(selectedMatrix.nonPlannedHolidayCriticality) }}
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Validation Manager:</span>
+            <span class="value" [ngClass]="{
+              'status-pending': selectedMatrix.managerValidationStatus === 'PENDING',
+              'status-approved': selectedMatrix.managerValidationStatus === 'APPROVED',
+              'status-rejected': selectedMatrix.managerValidationStatus === 'REJECTED'
+            }">
+              {{ getStatusLabel(selectedMatrix.managerValidationStatus) }}
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Validation HOS:</span>
+            <span class="value" [ngClass]="{
+              'status-pending': selectedMatrix.hosValidationStatus === 'PENDING',
+              'status-approved': selectedMatrix.hosValidationStatus === 'APPROVED',
+              'status-rejected': selectedMatrix.hosValidationStatus === 'REJECTED'
+            }">
+              {{ getStatusLabel(selectedMatrix.hosValidationStatus) }}
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Validation DG:</span>
+            <span class="value" [ngClass]="{
+              'status-pending': selectedMatrix.dgValidationStatus === 'PENDING',
+              'status-approved': selectedMatrix.dgValidationStatus === 'APPROVED',
+              'status-rejected': selectedMatrix.dgValidationStatus === 'REJECTED'
+            }">
+              {{ getStatusLabel(selectedMatrix.dgValidationStatus) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="comments-section">
+          <h4>Commentaires</h4>
+          <ul class="comments-list">
+            <li *ngFor="let comment of matrixComments">
+              <div class="comment-header">
+                <span class="comment-author">{{ comment.author?.username }}</span>
+                <span class="comment-time">{{ comment.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <div class="comment-content">{{ comment.content }}</div>
+            </li>
+          </ul>
+
+          <div class="add-comment">
+            <textarea [(ngModel)]="newComment" placeholder="Ajouter un commentaire..."></textarea>
+            <button (click)="addComment()">Envoyer</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" *ngIf="selectedMatrix && selectedMatrix.dgValidationStatus === 'PENDING'">
+        <button class="btn-approve" (click)="approveMatrix(selectedMatrix.id)">Approuver</button>
+        <button class="btn-reject" (click)="rejectMatrix(selectedMatrix.id)">Rejeter</button>
+      </div>
+    </div>
+  </div>
+</div>
