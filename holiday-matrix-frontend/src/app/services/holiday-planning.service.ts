@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import {HttpClient, HttpHeaders} from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { HolidayPlanning } from '../models/holiday-planning';
 
@@ -32,7 +32,11 @@ export class HolidayPlanningService {
   }
 
   validateByManager(planningId: number): Observable<HolidayPlanning> {
-    return this.http.post<HolidayPlanning>(`${this.apiUrl}/${planningId}/validate/manager`, {});
+    return this.http.post<HolidayPlanning>(`${this.apiUrl}/${planningId}/validate/manager`, {}, {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    });
   }
 
   validateByHOS(planningId: number): Observable<HolidayPlanning> {

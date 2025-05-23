@@ -497,6 +497,9 @@ export class MatrixFormComponent implements OnInit {
 }
 */
 
+
+//make en comment le 19/05/2025 a 4:44
+/*
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray } from '@angular/forms';
@@ -756,5 +759,243 @@ export class MatrixFormComponent implements OnInit {
   // Si vous avez besoin de cette méthode pour créer une matrice
   createMatrix(matrixData: any): any {
     return this.matrixService.validateByHOS(this.matrixId, matrixData.id); // À adapter
+  }
+}
+*/
+
+//commente 19/05
+
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray } from '@angular/forms';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { MatrixService } from '../../services/matrix.service';
+import { PositionService } from '../../services/position.service';
+import { Position } from '../../models/position';
+import { AuthService } from '../../services/auth.service';
+
+@Component({
+  selector: 'app-matrix-form',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  templateUrl: './matrix-form.component.html',
+  styleUrls: ['./matrix-form.component.css']
+})
+export class MatrixFormComponent implements OnInit {
+  matrixForm!: FormGroup;
+  positions: Position[] = [];
+  availablePositionsByRow: Position[][] = []; // Positions disponibles par ligne
+  editMode = false;
+  matrixId?: number;
+  allPositionsSelected = false;
+
+  constructor(
+    private fb: FormBuilder,
+    private matrixService: MatrixService,
+    private positionService: PositionService,
+    private authService: AuthService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) { }
+
+  ngOnInit(): void {
+    this.initForm();
+    this.loadPositions();
+
+    // Vérifier s'il s'agit d'une mise à jour
+    this.route.params.subscribe(params => {
+      if (params['id']) {
+        this.editMode = true;
+        this.matrixId = +params['id'];
+        this.loadMatrixData();
+      }
+    });
+  }
+
+  get entries() {
+    return this.matrixForm.get('entries') as FormArray;
+  }
+
+  initForm(): void {
+    this.matrixForm = this.fb.group({
+      year: [new Date().getFullYear(), [Validators.required, Validators.min(2000), Validators.max(2100)]],
+      entries: this.fb.array([])
+    });
+
+    // Les entrées seront ajoutées après le chargement des positions
+  }
+
+  loadPositions(): void {
+    this.positionService.getAll().subscribe({
+      next: (data) => {
+        this.positions = data;
+
+        // En mode création, pré-remplir avec une entrée pour chaque position
+        if (!this.editMode) {
+          this.prePopulateEntries();
+        }
+
+        this.updateAvailablePositions();
+        this.checkAllPositionsSelected();
+      },
+      error: (err: Error) => {
+        console.error('Erreur lors du chargement des positions', err);
+      }
+    });
+  }
+
+  loadMatrixData(): void {
+    if (!this.matrixId) return;
+
+    this.matrixService.getById(this.matrixId).subscribe({
+      next: (matrix) => {
+        this.matrixForm.patchValue({
+          year: matrix.year
+        });
+
+        // Nettoyer les entrées existantes
+        while (this.entries.length > 0) {
+          this.entries.removeAt(0);
+        }
+
+        // Ajouter les entrées de la matrice
+        if (matrix.entries && matrix.entries.length > 0) {
+          matrix.entries.forEach(entry => {
+            this.entries.push(this.createEntryFormGroup(entry));
+          });
+
+          // Si le nombre d'entrées est inférieur au nombre de positions, ajouter des entrées
+          if (matrix.entries.length < this.positions.length) {
+            const entriesToAdd = this.positions.length - matrix.entries.length;
+            for (let i = 0; i < entriesToAdd; i++) {
+              this.addEntry();
+            }
+          }
+        } else {
+          this.prePopulateEntries();
+        }
+
+        this.updateAvailablePositions();
+        this.checkAllPositionsSelected();
+      },
+      error: (err: Error) => {
+        console.error('Erreur lors du chargement de la matrice', err);
+      }
+    });
+  }
+
+  createEntryFormGroup(entry?: any): FormGroup {
+    const group = this.fb.group({
+      id: [entry?.id],
+      positionId: [entry?.positionId || '', Validators.required],
+      headcount: [entry?.headcount || 0, [Validators.required, Validators.min(0)]],
+      plannedHolidayCritical: [entry?.plannedHolidayCritical || 0, [Validators.min(0)]],
+      plannedHolidayMedium: [entry?.plannedHolidayMedium || 0, [Validators.min(0)]],
+      plannedHolidayLow: [entry?.plannedHolidayLow || 0, [Validators.min(0)]],
+      nonPlannedHolidayCritical: [entry?.nonPlannedHolidayCritical || 0, [Validators.min(0)]],
+      nonPlannedHolidayMedium: [entry?.nonPlannedHolidayMedium || 0, [Validators.min(0)]],
+      nonPlannedHolidayLow: [entry?.nonPlannedHolidayLow || 0, [Validators.min(0)]]
+    });
+
+    // Écouter les changements sur le champ positionId
+    group.get('positionId')?.valueChanges.subscribe(() => {
+      this.updateAvailablePositions();
+      this.checkAllPositionsSelected();
+    });
+
+    return group;
+  }
+
+  prePopulateEntries(): void {
+    // Nettoyer les entrées existantes
+    while (this.entries.length > 0) {
+      this.entries.removeAt(0);
+    }
+
+    // Ajouter une entrée pour chaque position
+    this.positions.forEach(() => {
+      this.addEntry();
+    });
+  }
+
+  updateAvailablePositions(): void {
+    // Récupérer les IDs de positions déjà sélectionnées
+    const selectedPositionIds = this.entries.controls
+      .map(control => control.get('positionId')?.value)
+      .filter(id => id); // Filtrer les valeurs nulles ou vides
+
+    this.availablePositionsByRow = [];
+
+    // Pour chaque ligne, déterminer les positions disponibles
+    this.entries.controls.forEach((control, index) => {
+      const currentPositionId = control.get('positionId')?.value;
+
+      // Une position est disponible si c'est la position actuelle de la ligne
+      // ou si elle n'est pas déjà sélectionnée dans une autre ligne
+      const availableForThisRow = this.positions.filter(pos =>
+        pos.id === currentPositionId || !selectedPositionIds.includes(pos.id)
+      );
+
+      this.availablePositionsByRow[index] = availableForThisRow;
+    });
+  }
+
+  addEntry(): void {
+    this.entries.push(this.createEntryFormGroup());
+    this.updateAvailablePositions();
+    this.checkAllPositionsSelected();
+  }
+
+  removeEntry(index: number): void {
+    this.entries.removeAt(index);
+    this.updateAvailablePositions();
+    this.checkAllPositionsSelected();
+  }
+
+  checkAllPositionsSelected(): void {
+    // Vérifier que toutes les positions sont sélectionnées
+    const requiredEntries = Math.min(this.entries.length, this.positions.length);
+    const validEntries = this.entries.controls
+      .slice(0, requiredEntries)
+      .filter(control => {
+        const positionId = control.get('positionId')?.value;
+        return positionId && positionId !== '';
+      }).length;
+
+    this.allPositionsSelected = validEntries >= this.positions.length;
+  }
+
+  onSubmit(): void {
+    if (this.matrixForm.invalid || !this.allPositionsSelected) return;
+
+    const matrixData: any = {
+      year: this.matrixForm.value.year,
+      hosValidated: false,
+      dgValidated: false,
+      entries: this.matrixForm.value.entries
+    };
+
+    if (this.editMode && this.matrixId) {
+      // En mode édition
+      matrixData.id = this.matrixId;
+      this.matrixService.create(matrixData).subscribe({
+        next: () => {
+          this.router.navigate(['/matrix']);
+        },
+        error: (err: Error) => {
+          console.error('Erreur lors de la mise à jour de la matrice', err);
+        }
+      });
+    } else {
+      // En mode création
+      this.matrixService.create(matrixData).subscribe({
+        next: () => {
+          this.router.navigate(['/matrix']);
+        },
+        error: (err: Error) => {
+          console.error('Erreur lors de la création de la matrice', err);
+        }
+      });
+    }
   }
 }

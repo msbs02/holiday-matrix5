@@ -1,0 +1,85 @@
+.statistics-container {
+  font-family: Arial, sans-serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #fff;
+}
+
+.logo {
+  color: #1e5eb8;
+  font-size: 3em;
+  font-weight: bold;
+}
+
+.user-info {
+  text-align: right;
+}
+
+.logout {
+  display: block;
+  color: #1e5eb8;
+  text-decoration: none;
+}
+
+.banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #002173;
+  color: white;
+  padding: 15px 20px;
+}
+
+.dashboard-link {
+  background-color: white;
+  color: #002173;
+  text-decoration: none;
+  padding: 10px 15px;
+  border-radius: 50%;
+}
+
+.content {
+  display: flex;
+  margin: 20px;
+}
+
+.managers-list {
+  width: 30%;
+  padding-right: 20px;
+}
+
+.managers-list h2 {
+  margin-bottom: 15px;
+}
+
+.managers-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.managers-list li {
+  padding: 10px 0;
+  color: #1e5eb8;
+  cursor: pointer;
+}
+
+.managers-list li.active {
+  font-weight: bold;
+}
+
+.statistics-view {
+  width: 70%;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  padding: 15px;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+}

@@ -56,7 +56,7 @@ import {Matrix, MatrixEntry} from '../models/matrix';
   providedIn: 'root'
 })
 export class MatrixService {
-  private apiUrl = 'http://localhost:8080/api/matrices';
+  private apiUrl = 'http://localhost:8080/api/matrices_v2';
 
   constructor(private http: HttpClient) { }
 

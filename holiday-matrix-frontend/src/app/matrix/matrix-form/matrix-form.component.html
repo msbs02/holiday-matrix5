@@ -1,1 +1,83 @@
-<p>matrix-form works!</p>
+<div class="container">
+  <h2>{{ editMode ? 'Modifier' : 'Créer' }} une matrice</h2>
+
+  <form [formGroup]="matrixForm" (ngSubmit)="onSubmit()">
+    <div class="mb-3">
+      <label for="year" class="form-label">Année</label>
+      <input type="number" class="form-control" id="year" formControlName="year">
+    </div>
+
+    <h3>Entrées de la matrice</h3>
+    <div formArrayName="entries">
+      <div *ngFor="let entry of entries.controls; let i = index" [formGroupName]="i" class="card mb-3 p-3">
+        <div class="mb-3">
+          <label [for]="'position-' + i" class="form-label">Position</label>
+          <select [id]="'position-' + i" class="form-select" formControlName="positionId">
+            <option value="">Sélectionner une position</option>
+            <option *ngFor="let position of availablePositionsByRow[i]" [value]="position.id">{{ position.title }}</option>
+          </select>
+          <div *ngIf="entry.get('positionId')?.invalid && entry.get('positionId')?.touched" class="text-danger">
+            Position obligatoire
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label [for]="'headcount-' + i" class="form-label">Nombre d'employés</label>
+          <input type="number" class="form-control" [id]="'headcount-' + i" formControlName="headcount">
+        </div>
+
+        <div class="row">
+          <div class="col-md-4">
+            <h4>Congés planifiés</h4>
+            <div class="mb-3">
+              <label [for]="'planned-critical-' + i" class="form-label">Critique</label>
+              <input type="number" class="form-control" [id]="'planned-critical-' + i" formControlName="plannedHolidayCritical">
+            </div>
+            <div class="mb-3">
+              <label [for]="'planned-medium-' + i" class="form-label">Moyen</label>
+              <input type="number" class="form-control" [id]="'planned-medium-' + i" formControlName="plannedHolidayMedium">
+            </div>
+            <div class="mb-3">
+              <label [for]="'planned-low-' + i" class="form-label">Faible</label>
+              <input type="number" class="form-control" [id]="'planned-low-' + i" formControlName="plannedHolidayLow">
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <h4>Congés non planifiés</h4>
+            <div class="mb-3">
+              <label [for]="'non-planned-critical-' + i" class="form-label">Critique</label>
+              <input type="number" class="form-control" [id]="'non-planned-critical-' + i" formControlName="nonPlannedHolidayCritical">
+            </div>
+            <div class="mb-3">
+              <label [for]="'non-planned-medium-' + i" class="form-label">Moyen</label>
+              <input type="number" class="form-control" [id]="'non-planned-medium-' + i" formControlName="nonPlannedHolidayMedium">
+            </div>
+            <div class="mb-3">
+              <label [for]="'non-planned-low-' + i" class="form-label">Faible</label>
+              <input type="number" class="form-control" [id]="'non-planned-low-' + i" formControlName="nonPlannedHolidayLow">
+            </div>
+          </div>
+
+          <div class="col-md-4 d-flex align-items-center">
+            <button type="button" class="btn btn-danger btn-sm" (click)="removeEntry(i)" *ngIf="entries.length > positions.length">Supprimer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bouton pour ajouter une entrée supplémentaire si nécessaire -->
+      <button type="button" class="btn btn-secondary mb-3" (click)="addEntry()">Ajouter une entrée supplémentaire</button>
+    </div>
+
+    <div class="alert alert-info" *ngIf="!allPositionsSelected">
+      Pour créer la matrice, vous devez sélectionner une position pour chaque ligne.
+    </div>
+
+    <div>
+      <button type="submit" class="btn btn-primary me-2" [disabled]="matrixForm.invalid || !allPositionsSelected">
+        {{ editMode ? 'Mettre à jour' : 'Créer' }}
+      </button>
+      <button type="button" class="btn btn-secondary" routerLink="/matrix">Annuler</button>
+    </div>
+  </form>
+</div>

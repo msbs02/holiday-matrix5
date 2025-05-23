@@ -5,6 +5,7 @@ import com.holidaymatrix.service.HolidayPlanningService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import com.holidaymatrix.model.User;
@@ -78,6 +79,9 @@ public class HolidayPlanningController {
                 .orElse(ResponseEntity.badRequest().build());
     }
 
+    // Ajoutez cette annotation pour autoriser les requêtes de validation
+    @PreAuthorize("hasRole('MANAGER') or hasRole('HEAD_OF_SERVICE') or hasRole('DIRECTION_GENERAL')")
+    //@PostMapping("/{id}/validate/manager")
     @PostMapping("/{planningId}/validate/manager")
     public ResponseEntity<HolidayPlanningDTO> validatePlanningByManager(
             @PathVariable Long planningId,

@@ -1,0 +1,10 @@
+<div class="chart-container">
+  <h3>Statistiques de {{ managerName }}</h3>
+  <div class="chart">
+    <canvas baseChart
+            [data]="chartData"
+            [options]="chartOptions"
+            [type]="'line'">
+    </canvas>
+  </div>
+</div>

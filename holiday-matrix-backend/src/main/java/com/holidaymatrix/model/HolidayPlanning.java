@@ -71,6 +71,8 @@ public class HolidayPlanning {
     // Constructeurs
     public HolidayPlanning() {}
 
+
+
     // Getters et Setters
     public Long getId() {
         return id;

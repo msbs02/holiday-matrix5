@@ -1,0 +1,39 @@
+<div class="statistics-container">
+  <header class="header">
+    <div class="logo">LEONI</div>
+    <div class="user-info">
+      <span>User Name</span>
+      <a href="#" class="logout">Déconnexion</a>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <div class="banner">
+      <h1>Statistiques des Employés par Manager</h1>
+      <a href="#" class="dashboard-link">Dashboard</a>
+    </div>
+
+    <div class="content">
+      <div class="managers-list">
+        <h2>Liste des Managers</h2>
+        <ul>
+          <li *ngFor="let manager of managers"
+              [class.active]="manager === selectedManager"
+              (click)="selectManager(manager)">
+            {{ manager }}
+          </li>
+        </ul>
+      </div>
+
+      <div class="statistics-view">
+        <div *ngIf="loading" class="loading">Chargement...</div>
+
+        <app-statistics-chart
+          *ngIf="!loading && statistics"
+          [data]="statistics.weeklyStatistics"
+          [managerName]="statistics.managerName">
+        </app-statistics-chart>
+      </div>
+    </div>
+  </div>
+</div>
