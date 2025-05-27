@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -44,7 +45,7 @@ public class HolidayPlanningService {
                 .map(this::convertToDTO);
     }
 
-    public List<HolidayPlanningDTO> getPlanningsByEmployee(Long employeeId) {
+    /*public List<HolidayPlanningDTO> getPlanningsByEmployee(Long employeeId) {
         return employeeRepository.findById(employeeId)
                 .map(employee -> planningRepository.findByEmployee(employee).stream()
                         .map(this::convertToDTO)
@@ -58,9 +59,86 @@ public class HolidayPlanningService {
                         .map(this::convertToDTO)
                         .collect(Collectors.toList()))
                 .orElse(List.of());
+    }*/
+    // Updated methods
+    // Correct return type
+    /*public List<HolidayPlanningDTO> getPlanningsByEmployee(Long employeeId) {
+        return employeeRepository.findById(employeeId)
+                .map(planningRepository::findByEmployee) // Returns List<HolidayPlanningDTO>
+                .orElse(Collections.emptyList());
+    }*/
+    // Correct return type
+    public List<HolidayPlanningDTO> getPlanningsByEmployee(Long employeeId) {
+        return employeeRepository.findById(employeeId)
+                .map(planningRepository::findByEmployee) // Returns List<HolidayPlanningDTO>
+                .orElse(Collections.emptyList());
     }
 
+    public List<HolidayPlanningDTO> getPlanningsByPeriod(Long periodId) {
+        return periodRepository.findById(periodId)
+                .map(planningRepository::findByHolidayPeriod)  // Directly use the repository method
+                .orElse(List.of());
+    }
+
+    // Other methods remain unchanged, but ensure convertToDTO is consistent
+    private HolidayPlanningDTO convertToDTO(HolidayPlanning planning) {
+        HolidayPlanningDTO dto = new HolidayPlanningDTO();
+        dto.setId(planning.getId());
+
+        if (planning.getEmployee() != null) {
+            dto.setEmployeeId(planning.getEmployee().getId());
+            dto.setEmployeeName(planning.getEmployee().getName());
+        }
+
+        if (planning.getHolidayPeriod() != null) {
+            dto.setHolidayPeriodId(planning.getHolidayPeriod().getId());
+            dto.setHolidayPeriodName(planning.getHolidayPeriod().getName());
+        }
+
+        dto.setStatus(planning.getStatus());
+        dto.setComment(planning.getComment());
+        dto.setManagerValidated(planning.isManagerValidated());
+        dto.setHosValidated(planning.isHosValidated());
+        dto.setDgValidated(planning.isDgValidated());
+
+        return dto;
+    }
+
+    // Rest of the class remains unchanged...
+
     @Transactional
+    public Optional<HolidayPlanningDTO> createPlanning(HolidayPlanningDTO dto, Long createdById) {
+        return userRepository.findById(createdById)
+                .flatMap(creator -> employeeRepository.findById(dto.getEmployeeId())
+                        .flatMap(employee -> periodRepository.findById(dto.getHolidayPeriodId())
+                                .map(period -> {
+                                    // Check if a planning already exists for this employee and period
+                                    List<HolidayPlanning> existingPlannings = planningRepository.findByEmployeeAndHolidayPeriod(employee, period);
+                                    if (!existingPlannings.isEmpty()) {
+                                        // Update existing planning
+                                        HolidayPlanning planning = existingPlannings.get(0);
+                                        planning.setStatus(dto.getStatus());
+                                        planning.setComment(dto.getComment());
+                                        planning.setUpdatedBy(creator);
+                                        planning.setUpdatedAt(LocalDateTime.now());
+                                        HolidayPlanning updatedPlanning = planningRepository.save(planning);
+                                        return convertToDTO(updatedPlanning);
+                                    } else {
+                                        // Create new planning
+                                        HolidayPlanning planning = new HolidayPlanning();
+                                        planning.setEmployee(employee);
+                                        planning.setHolidayPeriod(period);
+                                        planning.setStatus(dto.getStatus());
+                                        planning.setComment(dto.getComment());
+                                        planning.setCreatedBy(creator);
+                                        planning.setCreatedAt(LocalDateTime.now());
+                                        HolidayPlanning savedPlanning = planningRepository.save(planning);
+                                        return convertToDTO(savedPlanning);
+                                    }
+                                })));
+    }
+
+    /*@Transactional
     public Optional<HolidayPlanningDTO> createPlanning(HolidayPlanningDTO dto, Long createdById) {
         return userRepository.findById(createdById)
                 .flatMap(creator -> employeeRepository.findById(dto.getEmployeeId())
@@ -93,7 +171,7 @@ public class HolidayPlanningService {
                                         return convertToDTO(savedPlanning);
                                     }
                                 })));
-    }
+    }*/
 
     @Transactional
     public Optional<HolidayPlanningDTO> validatePlanningByManager(Long planningId, Long managerId) {
@@ -145,7 +223,7 @@ public class HolidayPlanningService {
         return false;
     }
 
-    private HolidayPlanningDTO convertToDTO(HolidayPlanning planning) {
+    /*private HolidayPlanningDTO convertToDTO(HolidayPlanning planning) {
         HolidayPlanningDTO dto = new HolidayPlanningDTO();
         dto.setId(planning.getId());
 
@@ -166,5 +244,5 @@ public class HolidayPlanningService {
         dto.setDgValidated(planning.isDgValidated());
 
         return dto;
-    }
+    }*/
 }

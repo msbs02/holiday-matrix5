@@ -155,33 +155,24 @@ public interface HolidayPlanningRepository extends JpaRepository<HolidayPlanning
 
 }*/
 
-package com.holidaymatrix.repository;
 
-import com.holidaymatrix.model.HolidayPlanning;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
-import java.util.List;
-
-@Repository
+/*
 public interface HolidayPlanningRepository extends JpaRepository<HolidayPlanning, Long> {
 
     /**
      * Trouve tous les plannings de congés pour une liste d'employés
-     */
+     *
     List<HolidayPlanning> findByEmployeeIdIn(List<Long> employeeIds);
 
     /**
      * Trouve tous les plannings de congés pour un employé spécifique
-     */
+     *
     List<HolidayPlanning> findByEmployeeId(Long employeeId);
 
     /**
      * Trouve tous les plannings de congés pour un manager direct spécifique
-     */
+     *
     @Query("SELECT hp FROM HolidayPlanning hp " +
             "JOIN hp.employee e " +
             "WHERE e.directManager.id = :managerId")
@@ -189,7 +180,7 @@ public interface HolidayPlanningRepository extends JpaRepository<HolidayPlanning
 
     /**
      * Compte le nombre de congés planifiés par semaine pour un manager direct
-     */
+     *
     @Query("SELECT WEEK(hp.startDate) as weekNumber, COUNT(hp) as count " +
             "FROM HolidayPlanning hp " +
             "JOIN hp.employee e " +
@@ -202,7 +193,7 @@ public interface HolidayPlanningRepository extends JpaRepository<HolidayPlanning
 
     /**
      * Compte le nombre de congés planifiés par semaine pour une liste d'employés
-     */
+     *
     @Query("SELECT WEEK(hp.startDate) as weekNumber, COUNT(hp) as count " +
             "FROM HolidayPlanning hp " +
             "WHERE hp.employee.id IN :employeeIds " +
@@ -214,14 +205,14 @@ public interface HolidayPlanningRepository extends JpaRepository<HolidayPlanning
 
     /**
      * Trouve tous les plannings de congés pour une année spécifique
-     */
+     *
     @Query("SELECT hp FROM HolidayPlanning hp WHERE YEAR(hp.startDate) = :year")
     List<HolidayPlanning> findByYear(@Param("year") Integer year);
 
     /**
      * Compte le nombre total de congés planifiés par semaine pour tous les employés
      * Vue globale pour HOS et DG
-     */
+     *
     @Query("SELECT WEEK(hp.startDate) as weekNumber, COUNT(hp) as count " +
             "FROM HolidayPlanning hp " +
             "WHERE YEAR(hp.startDate) = :year " +
@@ -231,7 +222,7 @@ public interface HolidayPlanningRepository extends JpaRepository<HolidayPlanning
 
     /**
      * Trouve les plannings par status pour un manager
-     */
+     *
     @Query("SELECT hp FROM HolidayPlanning hp " +
             "JOIN hp.employee e " +
             "WHERE e.directManager.id = :managerId " +
@@ -241,7 +232,7 @@ public interface HolidayPlanningRepository extends JpaRepository<HolidayPlanning
 
     /**
      * Compte les employés en congé par type de criticité et par semaine pour un manager
-     */
+     *
     @Query("SELECT WEEK(hp.startDate) as weekNumber, hp.criticalityLevel as criticality, COUNT(hp) as count " +
             "FROM HolidayPlanning hp " +
             "JOIN hp.employee e " +
@@ -254,7 +245,7 @@ public interface HolidayPlanningRepository extends JpaRepository<HolidayPlanning
 
     /**
      * Vue globale des statistiques par criticité pour HOS et DG
-     */
+     *
     @Query("SELECT WEEK(hp.startDate) as weekNumber, hp.criticalityLevel as criticality, COUNT(hp) as count " +
             "FROM HolidayPlanning hp " +
             "WHERE YEAR(hp.startDate) = :year " +
@@ -264,7 +255,7 @@ public interface HolidayPlanningRepository extends JpaRepository<HolidayPlanning
 
     /**
      * Trouve les plannings pour une période spécifique
-     */
+     *
     @Query("SELECT hp FROM HolidayPlanning hp " +
             "WHERE hp.startDate >= :startDate " +
             "AND hp.endDate <= :endDate")
@@ -273,7 +264,7 @@ public interface HolidayPlanningRepository extends JpaRepository<HolidayPlanning
 
     /**
      * Statistiques par organisation pour la direction générale
-     */
+     *
     @Query("SELECT e.position.organization.name as orgName, WEEK(hp.startDate) as weekNumber, COUNT(hp) as count " +
             "FROM HolidayPlanning hp " +
             "JOIN hp.employee e " +
@@ -284,7 +275,7 @@ public interface HolidayPlanningRepository extends JpaRepository<HolidayPlanning
 
     /**
      * Trouve tous les managers directs qui ont des employés avec des plannings
-     */
+     *
     @Query("SELECT DISTINCT e.directManager.id, e.directManager.name " +
             "FROM HolidayPlanning hp " +
             "JOIN hp.employee e " +
@@ -294,7 +285,7 @@ public interface HolidayPlanningRepository extends JpaRepository<HolidayPlanning
 
     /**
      * Compte le nombre total d'employés par manager direct ayant des plannings
-     */
+     *
     @Query("SELECT e.directManager.id as managerId, e.directManager.name as managerName, COUNT(DISTINCT e.id) as employeeCount " +
             "FROM HolidayPlanning hp " +
             "JOIN hp.employee e " +
@@ -302,4 +293,79 @@ public interface HolidayPlanningRepository extends JpaRepository<HolidayPlanning
             "AND YEAR(hp.startDate) = :year " +
             "GROUP BY e.directManager.id, e.directManager.name")
     List<Object[]> countEmployeesByManager(@Param("year") Integer year);
+
+    //List<HolidayPlanningDTO> findByEmployee(Employee employee);
+    //List<HolidayPlanningDTO> findByHolidayPeriod(HolidayPeriod holidayPeriod);
+    //List<HolidayPlanningDTO> findByEmployeeAndHolidayPeriod(Employee employee, HolidayPeriod holidayPeriod);
+
+    // Updated methods with @Query
+    @Query("SELECT new com.holidaymatrix.dto.HolidayPlanningDTO(hp.id, hp.employee.id, hp.employee.name, hp.holidayPeriod.id, hp.holidayPeriod.name, hp.status, hp.comment, hp.managerValidated, hp.hosValidated, hp.dgValidated) " +
+            "FROM HolidayPlanning hp " +
+            "WHERE hp.employee = :employee")
+    List<HolidayPlanningDTO> findByEmployee(@Param("employee") Employee employee);
+
+    @Query("SELECT new com.holidaymatrix.dto.HolidayPlanningDTO(hp.id, hp.employee.id, hp.employee.name, hp.holidayPeriod.id, hp.holidayPeriod.name, hp.status, hp.comment, hp.managerValidated, hp.hosValidated, hp.dgValidated) " +
+            "FROM HolidayPlanning hp " +
+            "WHERE hp.holidayPeriod = :holidayPeriod")
+    List<HolidayPlanningDTO> findByHolidayPeriod(@Param("holidayPeriod") HolidayPeriod holidayPeriod);
+
+    @Query("SELECT new com.holidaymatrix.dto.HolidayPlanningDTO(hp.id, hp.employee.id, hp.employee.name, hp.holidayPeriod.id, hp.holidayPeriod.name, hp.status, hp.comment, hp.managerValidated, hp.hosValidated, hp.dgValidated) " +
+            "FROM HolidayPlanning hp " +
+            "WHERE hp.employee = :employee AND hp.holidayPeriod = :holidayPeriod")
+    List<HolidayPlanningDTO> findByEmployeeAndHolidayPeriod(@Param("employee") Employee employee, @Param("holidayPeriod") HolidayPeriod holidayPeriod);
+}*/
+package com.holidaymatrix.repository;
+
+import com.holidaymatrix.dto.HolidayPlanningDTO;
+import com.holidaymatrix.model.Employee;
+import com.holidaymatrix.model.HolidayPeriod;
+import com.holidaymatrix.model.HolidayPlanning;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDate;
+import java.util.List;
+
+@Repository
+public interface HolidayPlanningRepository extends JpaRepository<HolidayPlanning, Long> {
+    List<HolidayPlanning> findByEmployeeAndHolidayPeriod(Employee employee, HolidayPeriod holidayPeriod);
+    List<HolidayPlanningDTO> findByEmployee(Employee employee); // For getPlanningsByEmployee
+    List<HolidayPlanningDTO> findByHolidayPeriod(HolidayPeriod period); // For getPlanningsByPeriod
+
+    @Query("SELECT WEEK(hp.startDate) as weekNumber, COUNT(hp) as count " +
+            "FROM HolidayPlanning hp " +
+            "JOIN hp.employee e " +
+            "WHERE e.directManager.id = :managerId " +
+            "AND YEAR(hp.startDate) = :year " +
+            "GROUP BY WEEK(hp.startDate) " +
+            "ORDER BY WEEK(hp.startDate)")
+    List<Object[]> countPlanningsByWeekForManager(@Param("managerId") Long managerId, @Param("year") Integer year);
+
+    @Query("SELECT WEEK(hp.startDate) as weekNumber, COUNT(hp) as count " +
+            "FROM HolidayPlanning hp " +
+            "WHERE hp.employee.id IN :employeeIds " +
+            "AND YEAR(hp.startDate) = :year " +
+            "GROUP BY WEEK(hp.startDate) " +
+            "ORDER BY WEEK(hp.startDate)")
+    List<Object[]> countPlanningsByWeekForEmployees(@Param("employeeIds") List<Long> employeeIds, @Param("year") Integer year);
+
+    @Query("SELECT WEEK(hp.startDate) as weekNumber, COUNT(hp) as count " +
+            "FROM HolidayPlanning hp " +
+            "WHERE YEAR(hp.startDate) = :year " +
+            "GROUP BY WEEK(hp.startDate) " +
+            "ORDER BY WEEK(hp.startDate)")
+    List<Object[]> countPlanningsByWeekGlobal(@Param("year") Integer year);
+
+    @Query("SELECT DISTINCT e.directManager.id, e.directManager.name " +
+            "FROM HolidayPlanning hp " +
+            "JOIN hp.employee e " +
+            "WHERE e.directManager IS NOT NULL " +
+            "AND YEAR(hp.startDate) = :year")
+    List<Object[]> findManagersWithPlannings(@Param("year") Integer year);
+
+
+
+
 }

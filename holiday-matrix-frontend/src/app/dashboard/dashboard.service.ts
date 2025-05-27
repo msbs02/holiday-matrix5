@@ -31,6 +31,7 @@ export interface ManagerDashboardData {
 export class DashboardService {
   private baseUrl = 'http://localhost:8080/api/dashboard';
 
+
   constructor(private http: HttpClient) {}
 
   getEmployeeDashboardData(): Observable<EmployeeDashboardData> {

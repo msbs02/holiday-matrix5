@@ -14,6 +14,22 @@ public class HolidayPlanningDTO {
     private boolean hosValidated;
     private boolean dgValidated;
 
+    // Add this constructor for JPQL
+    public HolidayPlanningDTO(Long id, Long employeeId, String employeeName, Long holidayPeriodId, String holidayPeriodName, String status, String comment, boolean managerValidated, boolean hosValidated, boolean dgValidated) {
+        this.id = id;
+        this.employeeId = employeeId;
+        this.employeeName = employeeName;
+        this.holidayPeriodId = holidayPeriodId;
+        this.holidayPeriodName = holidayPeriodName;
+        this.status = status;
+        this.comment = comment;
+        this.managerValidated = managerValidated;
+        this.hosValidated = hosValidated;
+        this.dgValidated = dgValidated;
+    }
+
+    // Default constructor
+
     // Constructeurs
     public HolidayPlanningDTO() {}
 

@@ -1575,7 +1575,7 @@ export class AdminDashboardComponent implements OnInit {
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { MatrixService } from '../../services/matrix.service';
 import { HolidayService } from '../../services/holiday.service';
@@ -1591,7 +1591,7 @@ import { Comment } from '../../models/comment.model';
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css']
 })

@@ -2,6 +2,7 @@ package com.holidaymatrix.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.LocalDate;  // Add this import
 
 @Entity
 @Table(name = "holiday_planning")
@@ -18,6 +19,13 @@ public class HolidayPlanning {
     @ManyToOne
     @JoinColumn(name = "holiday_period_id")
     private HolidayPeriod holidayPeriod;
+
+    // Add these fields
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
 
     // RED, YELLOW, GREEN selon le cahier des charges
     private String status;
@@ -68,9 +76,38 @@ public class HolidayPlanning {
     @JoinColumn(name = "dg_validated_by")
     private User dgValidatedBy;
 
+    @Column(name = "criticality_level")
+    private String criticalityLevel;
+
     // Constructeurs
     public HolidayPlanning() {}
 
+    public String getCriticalityLevel() {
+        return criticalityLevel;
+    }
+
+    public void setCriticalityLevel(String criticalityLevel) {
+        this.criticalityLevel = criticalityLevel;
+    }
+
+    // Getters and Setters (only adding new ones for brevity)
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    // Existing getters and setters remain unchanged...
 
 
     // Getters et Setters

@@ -480,6 +480,9 @@
     <button [class.active]="activeTab === 'matrices'" (click)="activeTab = 'matrices'">Matrices Annuelles</button>
     <button [class.active]="activeTab === 'planning'" (click)="activeTab = 'planning'">Planification</button>
     <button [class.active]="activeTab === 'users'" (click)="activeTab = 'users'">Gestion Utilisateurs</button>
+    <button [class.active]="activeTab === 'users'" (click)="activeTab = 'users'"> <a routerLink="/statistics" class="menu-item">
+      <i class="fa fa-chart-line"></i> Statistiques
+    </a> </button>
   </nav>
 
   <main class="content">
